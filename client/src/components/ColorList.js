@@ -1,44 +1,84 @@
-import React, { useState } from "react";
+import React, { useState, useParams, useEffect } from "react";
 import axios from "axios";
+import {axiosWithAuth} from "../utils/axiosWithAuth";
+import { BrowserRouter as Router, Route } from "react-router-dom";
+import { Link } from "react-router-dom"
 
 const initialColor = {
   color: "",
   code: { hex: "" }
 };
 
-const ColorList = ({ colors, updateColors }) => {
-  console.log(colors);
+const ColorList = ( props ) => {
+  console.log(props);
   const [editing, setEditing] = useState(false);
   const [colorToEdit, setColorToEdit] = useState(initialColor);
+  
 
   const editColor = color => {
+    console.log('editing color', color);
     setEditing(true);
     setColorToEdit(color);
   };
 
+//   useEffect(() => {
+//     const setUpdateColor = props.colors.find(color => `${color.id}` === props.colors.id);
+//     console.log('color to update', setUpdateColor);
+
+//     if(setUpdateColor){
+//         setColorToEdit(setUpdateColor);
+//     }
+
+// }, [props.colors, props.colors.id]);
+
+
   const saveEdit = e => {
-    e.preventDefault();
+    // e.preventDefault();
     // Make a put request to save your updated color
     // think about where will you get the id from...
-    // where is is saved right now?
+    // where is is saved right now? props.updateColors
+    axiosWithAuth()
+          .put(`/api/colors/${colorToEdit.id}`, colorToEdit)
+          .then(res => {
+            console.log(res);
+            setColorToEdit(res.data)
+            
+            axiosWithAuth()
+            .get(`http://localhost:5000/api/colors`)
+            .then(response => {
+              console.log(response);
+              
+            })
+            .catch(err => console.log(err))
+          })
+          .catch(err => console.log(err));
   };
 
   const deleteColor = color => {
     // make a delete request to delete this color
+    
+    axiosWithAuth()
+      .delete(`/api/colors/${color.id}`)
+      .then(res => {
+        console.log(res)
+        
+        // props.colors.history.push('/protected')
+      })
+      .catch(err => console.log(err))
   };
 
   return (
     <div className="colors-wrap">
       <p>colors</p>
       <ul>
-        {colors.map(color => (
+        {props.colors.map(color => (
           <li key={color.color} onClick={() => editColor(color)}>
-            <span>
+            <span> 
               <span className="delete" onClick={e => {
                     e.stopPropagation();
                     deleteColor(color)
                   }
-                }>
+                }> 
                   x
               </span>{" "}
               {color.color}
